@@ -2,9 +2,71 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-import 'cmyk.dart';
-
 const bit = 0XFF;
+
+/// A color represented using [cyan], [magenta], [yellow], and [black].
+@immutable
+class CMYKColor {
+  /// `[0.0..1.0]`
+  final double cyan;
+
+  /// `[0.0..1.0]`
+  final double magenta;
+
+  /// `[0.0..1.0]`
+  final double yellow;
+
+  /// `[0.0..1.0]`
+  final double black;
+
+  /// `[0.0..1.0]`
+  final double opacity;
+
+  const CMYKColor.fromCMYK(
+      this.cyan, this.magenta, this.yellow, this.black, this.opacity)
+      : assert(0 <= cyan, cyan <= 1),
+        assert(0 <= magenta, magenta <= 1),
+        assert(0 <= yellow, yellow <= 1),
+        assert(0 <= black, black <= 1),
+        assert(0 <= opacity, opacity <= 1);
+
+  factory CMYKColor.fromColor(Color color) {
+    final black = 1 - [color.red, color.green, color.blue].reduce(min) / bit;
+    return CMYKColor.fromCMYK(
+        1 - color.red / bit - black,
+        1 - color.green / bit - black,
+        1 - color.blue / bit - black,
+        black,
+        color.opacity);
+  }
+
+  Color toColor() => Color.fromRGBO(
+      (255 * (1 - cyan) * (1 - black)).round(),
+      (255 * (1 - magenta) * (1 - black)).round(),
+      (255 * (1 - yellow) * (1 - black)).round(),
+      opacity);
+
+  CMYKColor withcyan(double cyan) =>
+      CMYKColor.fromCMYK(cyan, magenta, yellow, black, opacity);
+
+  CMYKColor withMagetna(double yellow) =>
+      CMYKColor.fromCMYK(cyan, magenta, yellow, black, opacity);
+
+  CMYKColor withYellow(double yellow) =>
+      CMYKColor.fromCMYK(cyan, magenta, yellow, black, opacity);
+
+  CMYKColor withBlack(double black) =>
+      CMYKColor.fromCMYK(cyan, magenta, yellow, black, opacity);
+
+  /// Linearly interpolates between this color and another CMYKColor.
+  CMYKColor lerp(CMYKColor other, double t) => CMYKColor.fromCMYK(
+        cyan * (1 - t) + (other.cyan - cyan) * t,
+        magenta * (1 - t) + (other.magenta - magenta) * t,
+        yellow * (1 - t) + (other.yellow - yellow) * t,
+        black * (1 - t) + (other.black - black) * t,
+        opacity * (1 - t) + (other.opacity - opacity) * t,
+      );
+}
 
 enum ColorSource { rgb, hsv, hsl, cmyk }
 
@@ -156,8 +218,8 @@ class WideColor {
   final double saturationL;
 
   /// `[0.0..1.0]`
-  /// Cian from CMYK
-  double get cian => 1 - red / bit - black;
+  /// cyan from CMYK
+  double get cyan => 1 - red / bit - black;
 
   /// `[0.0..1.0]`
   /// Magenta from CMYK
@@ -184,7 +246,7 @@ class WideColor {
       HSLColor.fromAHSL(opacity, hue.toDouble(), saturationL, light);
 
   CMYKColor get cmyk =>
-      CMYKColor.fromCMYK(cian, magenta, yellow, black, opacity);
+      CMYKColor.fromCMYK(cyan, magenta, yellow, black, opacity);
 
   String get string => '#${bitValue.toRadixString(16)}';
 
@@ -303,18 +365,18 @@ class WideColor {
   WideColor withLight(double light) => withHSL(light: light);
 
   WideColor withCMYK(
-          {double? cian,
+          {double? cyan,
           double? magenta,
           double? yellow,
           double? black,
           int? alpha,
           double? opacity}) =>
-      WideColor.fromCMYK(cian ?? this.cian, magenta ?? this.magenta,
+      WideColor.fromCMYK(cyan ?? this.cyan, magenta ?? this.magenta,
           yellow ?? this.yellow, black ?? this.black,
           alpha:
               opacity != null ? (opacity * bit).round() : alpha ?? this.alpha);
 
-  WideColor withCian(double cian) => withCMYK(cian: cian);
+  WideColor withcyan(double cyan) => withCMYK(cyan: cyan);
   WideColor withMagenta(double magenta) => withCMYK(magenta: magenta);
   WideColor withYellow(double yellow) => withCMYK(yellow: yellow);
   WideColor withBlack(double black) => withCMYK(black: black);
@@ -357,7 +419,7 @@ class WideColor {
         );
       case ColorSource.cmyk:
         return WideColor.fromCMYK(
-          a.cian * aInfluence + b.cian * (1 - aInfluence),
+          a.cyan * aInfluence + b.cyan * (1 - aInfluence),
           a.magenta * aInfluence + b.magenta * (1 - aInfluence),
           a.yellow * aInfluence + b.yellow * (1 - aInfluence),
           a.black * aInfluence + b.black * (1 - aInfluence),
@@ -490,8 +552,8 @@ class ToolColor implements WideColor {
   set saturationL(double value) => hsl = hsl.withSaturation(value);
 
   @override
-  double get cian => cmyk.cian;
-  set cian(double value) => cmyk = cmyk.withCian(value);
+  double get cyan => cmyk.cyan;
+  set cyan(double value) => cmyk = cmyk.withcyan(value);
 
   @override
   double get magenta => cmyk.magenta;
@@ -649,19 +711,19 @@ class ToolColor implements WideColor {
 
   @override
   ToolColor withCMYK(
-          {double? cian,
+          {double? cyan,
           double? magenta,
           double? yellow,
           double? black,
           int? alpha,
           double? opacity}) =>
-      ToolColor.fromCMYK(cian ?? this.cian, magenta ?? this.magenta,
+      ToolColor.fromCMYK(cyan ?? this.cyan, magenta ?? this.magenta,
           yellow ?? this.yellow, black ?? this.black,
           alpha:
               opacity != null ? (opacity * bit).round() : alpha ?? this.alpha);
 
   @override
-  ToolColor withCian(double cian) => withCMYK(cian: cian);
+  ToolColor withcyan(double cyan) => withCMYK(cyan: cyan);
   @override
   ToolColor withMagenta(double magenta) => withCMYK(magenta: magenta);
   @override
@@ -702,7 +764,7 @@ class ToolColor implements WideColor {
         );
       case ColorSource.cmyk:
         return ToolColor.fromCMYK(
-          a.cian * aInfluence + b.cian * (1 - aInfluence),
+          a.cyan * aInfluence + b.cyan * (1 - aInfluence),
           a.magenta * aInfluence + b.magenta * (1 - aInfluence),
           a.yellow * aInfluence + b.yellow * (1 - aInfluence),
           a.black * aInfluence + b.black * (1 - aInfluence),

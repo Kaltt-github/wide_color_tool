@@ -119,7 +119,7 @@ class _MyHomePageState extends State<MyHomePage> {
           Text(
               'HSL: (${_color1.hue}, ${_color1.saturationL.toStringAsFixed(2)}, ${_color1.light.toStringAsFixed(2)})'),
           Text(
-              'CMYK: (${_color1.cian.toStringAsFixed(2)}, ${_color1.magenta.toStringAsFixed(2)}, ${_color1.yellow.toStringAsFixed(2)}, ${_color1.black.toStringAsFixed(2)})'),
+              'CMYK: (${_color1.cyan.toStringAsFixed(2)}, ${_color1.magenta.toStringAsFixed(2)}, ${_color1.yellow.toStringAsFixed(2)}, ${_color1.black.toStringAsFixed(2)})'),
         ],
       ),
     );
