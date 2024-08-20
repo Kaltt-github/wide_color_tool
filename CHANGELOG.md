@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.3+2] - 2024-08-19
+
+- Minor formatting changes
+
 ## [1.0.2+2] - 2024-08-19
 
 ### Fixed

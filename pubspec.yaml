@@ -1,6 +1,6 @@
 name: wide_color_tool
 description: "A custom color class implementation for Flutter that handles RGB, HSV, HSL, CMYK, Alpha, Opacity and contrasts."
-version: 1.0.2+2
+version: 1.0.3+2
 homepage: https://github.com/Kaltt-github
 repository: https://github.com/Kaltt-github/wide_color_tool
 issue_tracker: https://github.com/Kaltt-github/wide_color_tool/issues
