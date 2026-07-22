@@ -1,18 +1,25 @@
 name: wide_color_tool
-description: "A custom color class implementation for Flutter that handles RGB, HSV, HSL, CMYK, Alpha, Opacity and contrasts."
-version: 1.0.3+2
-homepage: https://github.com/Kaltt-github
+description: A Flutter color utility for RGB, HSV, HSL, CMYK, mixing, luminance, and WCAG contrast calculations.
+version: 2.0.0
+homepage: https://github.com/Kaltt-github/wide_color_tool
 repository: https://github.com/Kaltt-github/wide_color_tool
 issue_tracker: https://github.com/Kaltt-github/wide_color_tool/issues
+topics:
+  - color
+  - accessibility
+  - wcag
+  - utilities
 
 environment:
-  sdk: '^3.0.0'
+  sdk: ^3.8.0
+  flutter: '>=3.27.0'
 
 dependencies:
   flutter:
     sdk: flutter
 
 dev_dependencies:
+  flutter_lints: ^6.0.0
   flutter_test:
     sdk: flutter
 

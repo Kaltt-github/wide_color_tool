@@ -2,34 +2,34 @@ import 'package:flutter/material.dart';
 import 'package:wide_color_tool/wide_color_tool.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'WideColor Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: MyHomePage(title: 'WideColor Demo Home Page'),
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: const MyHomePage(title: 'WideColor Demo Home Page'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key? key, required this.title}) : super(key: key);
+  const MyHomePage({super.key, required this.title});
 
   final String title;
 
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  WideColor _color1 = WideColor.fromRGB(255, 0, 0);
-  WideColor _color2 = WideColor.fromRGB(0, 0, 255);
+  final WideColor _color1 = WideColor.fromRGB(255, 0, 0);
+  final WideColor _color2 = WideColor.fromRGB(0, 0, 255);
   WideColor _mixedColor = WideColor.fromRGB(127, 0, 127);
 
   void _mixRgbColors() {
@@ -77,10 +77,7 @@ class _MyHomePageState extends State<MyHomePage> {
         children: <Widget>[
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildColorBox(_color1),
-              _buildColorBox(_color2),
-            ],
+            children: [_buildColorBox(_color1), _buildColorBox(_color2)],
           ),
           SizedBox(height: 20),
           ElevatedButton(
@@ -104,9 +101,6 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _buildConversionsTab() {
-    final cmyk = _color1.cmyk;
-    final rgb = cmyk.toColor();
-    print('${rgb.red}, ${rgb.green}, ${rgb.blue}');
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -115,11 +109,14 @@ class _MyHomePageState extends State<MyHomePage> {
           SizedBox(height: 20),
           Text('RGB: (${_color1.red}, ${_color1.green}, ${_color1.blue})'),
           Text(
-              'HSV: (${_color1.hue}, ${_color1.saturationV.toStringAsFixed(2)}, ${_color1.value.toStringAsFixed(2)})'),
+            'HSV: (${_color1.hue}, ${_color1.saturationV.toStringAsFixed(2)}, ${_color1.value.toStringAsFixed(2)})',
+          ),
           Text(
-              'HSL: (${_color1.hue}, ${_color1.saturationL.toStringAsFixed(2)}, ${_color1.light.toStringAsFixed(2)})'),
+            'HSL: (${_color1.hue}, ${_color1.saturationL.toStringAsFixed(2)}, ${_color1.light.toStringAsFixed(2)})',
+          ),
           Text(
-              'CMYK: (${_color1.cyan.toStringAsFixed(2)}, ${_color1.magenta.toStringAsFixed(2)}, ${_color1.yellow.toStringAsFixed(2)}, ${_color1.black.toStringAsFixed(2)})'),
+            'CMYK: (${_color1.cyan.toStringAsFixed(2)}, ${_color1.magenta.toStringAsFixed(2)}, ${_color1.yellow.toStringAsFixed(2)}, ${_color1.black.toStringAsFixed(2)})',
+          ),
         ],
       ),
     );
@@ -158,10 +155,6 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _buildColorBox(WideColor color) {
-    return Container(
-      width: 100,
-      height: 100,
-      color: color.color,
-    );
+    return Container(width: 100, height: 100, color: color.color);
   }
 }
