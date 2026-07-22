@@ -64,11 +64,17 @@ class CMYKColor {
     this.yellow,
     this.black,
     this.opacity,
-  ) : assert(0 <= cyan, cyan <= 1),
-      assert(0 <= magenta, magenta <= 1),
-      assert(0 <= yellow, yellow <= 1),
-      assert(0 <= black, black <= 1),
-      assert(0 <= opacity, opacity <= 1);
+  ) : assert(0 <= cyan && cyan <= 1, 'cyan must be between 0.0 and 1.0.'),
+      assert(
+        0 <= magenta && magenta <= 1,
+        'magenta must be between 0.0 and 1.0.',
+      ),
+      assert(0 <= yellow && yellow <= 1, 'yellow must be between 0.0 and 1.0.'),
+      assert(0 <= black && black <= 1, 'black must be between 0.0 and 1.0.'),
+      assert(
+        0 <= opacity && opacity <= 1,
+        'opacity must be between 0.0 and 1.0.',
+      );
 
   /// Converts a Flutter [Color] to CMYK.
   factory CMYKColor.fromColor(Color color) {
@@ -347,7 +353,10 @@ class WideColor {
 
   /// `[0..360]`
   /// Hue from HSV or HSL
-  final int hue;
+  int get hue => hueDegrees.toInt();
+
+  /// The precise hue in degrees before integer compatibility conversion.
+  final double hueDegrees;
 
   /// `[0.0..1.0]`
   /// Value from HSV
@@ -396,11 +405,11 @@ class WideColor {
 
   /// This value in the HSV color space.
   HSVColor get hsv =>
-      HSVColor.fromAHSV(opacity, hue.toDouble(), saturationV, value);
+      HSVColor.fromAHSV(opacity, hueDegrees, saturationV, value);
 
   /// This value in the HSL color space.
   HSLColor get hsl =>
-      HSLColor.fromAHSL(opacity, hue.toDouble(), saturationL, light);
+      HSLColor.fromAHSL(opacity, hueDegrees, saturationL, light);
 
   /// This value in the CMYK color space.
   CMYKColor get cmyk =>
@@ -415,7 +424,7 @@ class WideColor {
 
   const WideColor._({
     required this.bitValue,
-    required this.hue,
+    required this.hueDegrees,
     required this.value,
     required this.saturationV,
     required this.light,
@@ -426,7 +435,7 @@ class WideColor {
   WideColor._complete(Color color, HSVColor hsv, HSLColor hsl)
     : this._(
         bitValue: color.toARGB32(),
-        hue: hsv.hue.toInt(),
+        hueDegrees: hsv.hue,
         value: hsv.value,
         saturationV: hsv.saturation,
         light: hsl.lightness,
@@ -464,7 +473,7 @@ class WideColor {
     : this._completeV(color.toColor(), color);
 
   /// Creates a color from HSV channels and optional transparency.
-  WideColor.fromHSV(int h, double s, double v, {int? alpha, double? opacity})
+  WideColor.fromHSV(num h, double s, double v, {int? alpha, double? opacity})
     : this.fromHSVColor(
         HSVColor.fromAHSV(
           alpha != null ? alpha / maxBit : opacity ?? 1.0,
@@ -479,7 +488,7 @@ class WideColor {
     : this._completeL(color.toColor(), color);
 
   /// Creates a color from HSL channels and optional transparency.
-  WideColor.fromHSL(int h, double s, double l, {int? alpha, double? opacity})
+  WideColor.fromHSL(num h, double s, double l, {int? alpha, double? opacity})
     : this.fromHSLColor(
         HSLColor.fromAHSL(
           alpha != null ? alpha / maxBit : opacity ?? 1.0,
@@ -545,13 +554,13 @@ class WideColor {
 
   /// Returns a copy with any supplied HSV or transparency channels replaced.
   WideColor withHSV({
-    int? hue,
+    num? hue,
     double? saturation,
     double? value,
     int? alpha,
     double? opacity,
   }) => WideColor.fromHSV(
-    hue ?? this.hue,
+    hue ?? hueDegrees,
     saturation ?? saturationV,
     value ?? this.value,
     alpha: opacity != null ? (opacity * maxBit).round() : alpha ?? this.alpha,
@@ -569,13 +578,13 @@ class WideColor {
 
   /// Returns a copy with any supplied HSL or transparency channels replaced.
   WideColor withHSL({
-    int? hue,
+    num? hue,
     double? saturation,
     double? light,
     int? alpha,
     double? opacity,
   }) => WideColor.fromHSL(
-    hue ?? this.hue,
+    hue ?? hueDegrees,
     saturation ?? saturationL,
     light ?? this.light,
     alpha: opacity != null ? (opacity * maxBit).round() : alpha ?? this.alpha,
@@ -619,7 +628,7 @@ class WideColor {
   /// Returns an independent immutable copy of this color.
   WideColor copy() => WideColor._(
     bitValue: bitValue,
-    hue: hue,
+    hueDegrees: hueDegrees,
     value: value,
     saturationV: saturationV,
     light: light,
@@ -653,14 +662,14 @@ class WideColor {
         );
       case ColorSource.hsv:
         return WideColor.fromHSV(
-          (a.hue * aInfluence + b.hue * (1 - aInfluence)).toInt(),
+          a.hsv.hue * aInfluence + b.hsv.hue * (1 - aInfluence),
           a.saturationV * aInfluence + b.saturationV * (1 - aInfluence),
           a.value * aInfluence + b.value * (1 - aInfluence),
           opacity: a.opacity * aInfluence + b.opacity * (1 - aInfluence),
         );
       case ColorSource.hsl:
         return WideColor.fromHSL(
-          (a.hue * aInfluence + b.hue * (1 - aInfluence)).toInt(),
+          a.hsl.hue * aInfluence + b.hsl.hue * (1 - aInfluence),
           a.saturationL * aInfluence + b.saturationL * (1 - aInfluence),
           a.light * aInfluence + b.light * (1 - aInfluence),
           opacity: a.opacity * aInfluence + b.opacity * (1 - aInfluence),
@@ -736,6 +745,9 @@ class WideColor {
 ///
 /// Use [WideColor] when an immutable color is preferred.
 class ToolColor implements WideColor {
+  @override
+  double get hueDegrees => hsv.hue;
+
   /// Lightens [toContrast] until it reaches [minContrast] against [base].
   static WideColor ensureLightContrast(
     WideColor base,
@@ -906,7 +918,7 @@ class ToolColor implements WideColor {
   ToolColor.fromHSVColor(HSVColor color) : _hsv = color;
 
   /// Creates a mutable color from HSV channels and optional transparency.
-  ToolColor.fromHSV(int h, double s, double v, {int? alpha, double? opacity})
+  ToolColor.fromHSV(num h, double s, double v, {int? alpha, double? opacity})
     : this.fromHSVColor(
         HSVColor.fromAHSV(
           alpha != null ? alpha / maxBit : opacity ?? 1.0,
@@ -920,7 +932,7 @@ class ToolColor implements WideColor {
   ToolColor.fromHSLColor(HSLColor color) : _hsl = color;
 
   /// Creates a mutable color from HSL channels and optional transparency.
-  ToolColor.fromHSL(int h, double s, double l, {int? alpha, double? opacity})
+  ToolColor.fromHSL(num h, double s, double l, {int? alpha, double? opacity})
     : this.fromHSLColor(
         HSLColor.fromAHSL(
           alpha != null ? alpha / maxBit : opacity ?? 1.0,
@@ -984,13 +996,13 @@ class ToolColor implements WideColor {
 
   @override
   ToolColor withHSV({
-    int? hue,
+    num? hue,
     double? saturation,
     double? value,
     int? alpha,
     double? opacity,
   }) => ToolColor.fromHSV(
-    hue ?? this.hue,
+    hue ?? hsv.hue,
     saturation ?? saturationV,
     value ?? this.value,
     alpha: opacity != null ? (opacity * maxBit).round() : alpha ?? this.alpha,
@@ -1006,13 +1018,13 @@ class ToolColor implements WideColor {
 
   @override
   ToolColor withHSL({
-    int? hue,
+    num? hue,
     double? saturation,
     double? light,
     int? alpha,
     double? opacity,
   }) => ToolColor.fromHSL(
-    hue ?? this.hue,
+    hue ?? hsl.hue,
     saturation ?? saturationL,
     light ?? this.light,
     alpha: opacity != null ? (opacity * maxBit).round() : alpha ?? this.alpha,
@@ -1076,14 +1088,14 @@ class ToolColor implements WideColor {
         );
       case ColorSource.hsv:
         return ToolColor.fromHSV(
-          (a.hue * aInfluence + b.hue * (1 - aInfluence)).toInt(),
+          a.hsv.hue * aInfluence + b.hsv.hue * (1 - aInfluence),
           a.saturationV * aInfluence + b.saturationV * (1 - aInfluence),
           a.value * aInfluence + b.value * (1 - aInfluence),
           opacity: a.opacity * aInfluence + b.opacity * (1 - aInfluence),
         );
       case ColorSource.hsl:
         return ToolColor.fromHSL(
-          (a.hue * aInfluence + b.hue * (1 - aInfluence)).toInt(),
+          a.hsl.hue * aInfluence + b.hsl.hue * (1 - aInfluence),
           a.saturationL * aInfluence + b.saturationL * (1 - aInfluence),
           a.light * aInfluence + b.light * (1 - aInfluence),
           opacity: a.opacity * aInfluence + b.opacity * (1 - aInfluence),

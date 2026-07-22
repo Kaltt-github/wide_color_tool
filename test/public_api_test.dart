@@ -136,6 +136,10 @@ void main() {
         () => WideColor.mix(first, second, aInfluence: -0.1),
         throwsRangeError,
       );
+      expect(
+        () => WideColor.mix(first, second, aInfluence: 1.1),
+        throwsRangeError,
+      );
     });
   });
 
@@ -246,6 +250,10 @@ void main() {
         expect(first.mix(second, source: source), isA<ToolColor>());
       }
       expect(
+        () => ToolColor.mix(first, second, aInfluence: -0.1),
+        throwsRangeError,
+      );
+      expect(
         () => ToolColor.mix(first, second, aInfluence: 1.1),
         throwsRangeError,
       );
@@ -258,6 +266,8 @@ void main() {
 
     test('returns an already compliant color unchanged', () {
       expect(WideColor.ensureContrast(black, white), same(white));
+      expect(WideColor.ensureLightContrast(black, white), same(white));
+      expect(WideColor.ensureDarkContrast(white, black), same(black));
       expect(
         WideColor.ensureContrast(
           black,

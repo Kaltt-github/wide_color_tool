@@ -17,8 +17,11 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Added `maxBit` and `percentageToBit` for explicit 8-bit channel conversion.
 - Added an optional hexadecimal prefix to `WideColor.toString` and
   `ToolColor.toString`.
+- Added `hueDegrees` for precise, non-truncated hue access while preserving the
+  integer `hue` API.
 - Added complete public API documentation and GitHub issue/PR templates.
-- Added an enforced 80% line-coverage threshold to CI.
+- Added an enforced 100% line-coverage threshold and boundary-condition tests
+  to CI.
 
 ### Changed
 
@@ -38,6 +41,9 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Fixed contrast ratios when ARGB ordering differed from luminance ordering.
 - Fixed six-digit hexadecimal input producing fully transparent colors.
 - Fixed `toString()` duplicating the default `#` hexadecimal prefix.
+- Fixed CMYK constructor assertions checking only the lower channel bounds.
+- Fixed fractional hue truncation changing RGB values during HSV/HSL
+  conversions and endpoint mixing.
 
 ### Removed
 

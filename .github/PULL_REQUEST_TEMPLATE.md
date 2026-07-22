@@ -7,7 +7,7 @@ Describe the change and why it is needed.
 - [ ] `dart format --output=none --set-exit-if-changed .`
 - [ ] `flutter analyze --fatal-infos`
 - [ ] `flutter test --coverage`
-- [ ] `dart run tool/check_coverage.dart 80`
+- [ ] `dart run tool/check_coverage.dart 100`
 - [ ] The example was updated if the public API or behavior changed.
 - [ ] `CHANGELOG.md` was updated for a user-visible change.
 

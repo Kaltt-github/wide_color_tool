@@ -1,7 +1,7 @@
 import 'dart:io';
 
 void main(List<String> arguments) {
-  final minimum = arguments.isEmpty ? 80.0 : double.parse(arguments.single);
+  final minimum = arguments.isEmpty ? 100.0 : double.parse(arguments.single);
   final coverageFile = File('coverage/lcov.info');
   if (!coverageFile.existsSync()) {
     stderr.writeln(

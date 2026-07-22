@@ -41,7 +41,7 @@ jobs:
         run: flutter test --coverage
 
       - name: Enforce coverage threshold
-        run: dart run tool/check_coverage.dart 80
+        run: dart run tool/check_coverage.dart 100
 
       - name: Analyze example application
         working-directory: example
