@@ -14,7 +14,7 @@ This project follows Semantic Versioning. Releases are created from a clean
    dart format --output=none --set-exit-if-changed .
    flutter analyze --fatal-infos
    flutter test --coverage
-   dart run tool/check_coverage.dart 80
+   dart run tool/check_coverage.dart 100
    flutter --suppress-analytics pub publish --dry-run
    ```
 

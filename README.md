@@ -65,6 +65,7 @@ final cyan = WideColor.fromCMYK(1, 0, 0, 0);
 final magenta = WideColor.fromString('#FF00FF');
 
 print(red.hsv);
+print(red.hueDegrees); // Precise hue; `hue` remains integer-compatible.
 print(green.hsl);
 print(blue.cmyk);
 print(cyan.color);
@@ -123,7 +124,7 @@ flutter pub get
 dart format --output=none --set-exit-if-changed .
 flutter analyze --fatal-infos
 flutter test --coverage
-dart run tool/check_coverage.dart 80
+dart run tool/check_coverage.dart 100
 ```
 
 Run the independent example application separately:

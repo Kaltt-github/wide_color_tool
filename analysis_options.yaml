@@ -9,5 +9,6 @@ analyzer:
 linter:
   rules:
     - directives_ordering
+    - prefer_asserts_with_message
     - public_member_api_docs
     - sort_pub_dependencies

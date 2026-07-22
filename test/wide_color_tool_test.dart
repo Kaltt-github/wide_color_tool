@@ -4,6 +4,51 @@ import 'package:wide_color_tool/wide_color_tool.dart';
 
 void main() {
   group('CMYKColor', () {
+    test('accepts the inclusive channel boundaries', () {
+      expect(
+        const CMYKColor.fromCMYK(0, 0, 0, 0, 0),
+        const CMYKColor.fromCMYK(0, 0, 0, 0, 0),
+      );
+      expect(
+        const CMYKColor.fromCMYK(1, 1, 1, 1, 1),
+        const CMYKColor.fromCMYK(1, 1, 1, 1, 1),
+      );
+    });
+
+    test('rejects every channel below and above its range', () {
+      final constructors = <String, CMYKColor Function(double)>{
+        'cyan': (value) => CMYKColor.fromCMYK(value, 0, 0, 0, 1),
+        'magenta': (value) => CMYKColor.fromCMYK(0, value, 0, 0, 1),
+        'yellow': (value) => CMYKColor.fromCMYK(0, 0, value, 0, 1),
+        'black': (value) => CMYKColor.fromCMYK(0, 0, 0, value, 1),
+        'opacity': (value) => CMYKColor.fromCMYK(0, 0, 0, 0, value),
+      };
+
+      for (final MapEntry(key: channel, value: constructor)
+          in constructors.entries) {
+        expect(
+          () => constructor(-0.001),
+          throwsA(
+            isA<AssertionError>().having(
+              (error) => error.message,
+              'message',
+              contains(channel),
+            ),
+          ),
+        );
+        expect(
+          () => constructor(1.001),
+          throwsA(
+            isA<AssertionError>().having(
+              (error) => error.message,
+              'message',
+              contains(channel),
+            ),
+          ),
+        );
+      }
+    });
+
     test('round-trips an RGB color', () {
       const source = Color(0xFF336699);
 
@@ -37,7 +82,27 @@ void main() {
       final midpoint = start.lerp(end, 0.5);
 
       expect(midpoint, const CMYKColor.fromCMYK(0.5, 0.5, 0.5, 0.5, 0.5));
+      expect(() => start.lerp(end, -0.1), throwsRangeError);
       expect(() => start.lerp(end, 1.1), throwsRangeError);
+    });
+
+    test('compares every component and hashes equal values consistently', () {
+      const base = CMYKColor.fromCMYK(0.1, 0.2, 0.3, 0.4, 0.5);
+      const same = CMYKColor.fromCMYK(0.1, 0.2, 0.3, 0.4, 0.5);
+      final different = <Object>[
+        const CMYKColor.fromCMYK(0.2, 0.2, 0.3, 0.4, 0.5),
+        const CMYKColor.fromCMYK(0.1, 0.3, 0.3, 0.4, 0.5),
+        const CMYKColor.fromCMYK(0.1, 0.2, 0.4, 0.4, 0.5),
+        const CMYKColor.fromCMYK(0.1, 0.2, 0.3, 0.5, 0.5),
+        const CMYKColor.fromCMYK(0.1, 0.2, 0.3, 0.4, 0.6),
+        Object(),
+      ];
+
+      expect(base, same);
+      expect(base.hashCode, same.hashCode);
+      for (final value in different) {
+        expect(base == value, isFalse);
+      }
     });
   });
 
@@ -47,6 +112,7 @@ void main() {
       expect(WideColor.fromString('#8F0A').bitValue, 0x88FF00AA);
       expect(WideColor.fromString('336699').bitValue, 0xFF336699);
       expect(WideColor.fromString('0x80336699').bitValue, 0x80336699);
+      expect(WideColor.fromString('  0X80336699  ').bitValue, 0x80336699);
     });
 
     test('formats a padded uppercase ARGB value', () {
@@ -96,7 +162,20 @@ void main() {
 
       expect(red.mix(blue, otherInfluence: 0), red);
       expect(red.mix(blue, otherInfluence: 1), blue);
+      expect(() => red.mix(blue, otherInfluence: -0.1), throwsRangeError);
       expect(() => red.mix(blue, otherInfluence: 1.1), throwsRangeError);
+    });
+
+    test('adjusts contrast through the immutable instance method', () {
+      final black = WideColor.fromRGB(0, 0, 0);
+      final darkGray = WideColor.fromRGB(30, 30, 30);
+
+      final adjusted = black.fixContrast(
+        darkGray,
+        preference: ContrastPreference.light,
+      );
+
+      expect(adjusted.contrast(black), greaterThanOrEqualTo(4.5));
     });
   });
 
