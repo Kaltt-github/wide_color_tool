@@ -3,16 +3,22 @@
 .idea/
 .vscode/
 build/
+coverage/
 doc/api/
 
-# The repository doubles as a runnable example, but platform runners are not
-# part of the reusable library distributed through pub.dev.
-android/
-ios/
-linux/
-macos/
-web/
-windows/
+# Keep the source example in the package archive without shipping its generated
+# platform runners or local development state.
+example/.dart_tool/
+example/.metadata
+example/android/
+example/build/
+example/ios/
+example/linux/
+example/macos/
+example/pubspec.lock
+example/test/
+example/web/
+example/windows/
 
 .metadata
 *.iml
