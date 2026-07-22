@@ -109,7 +109,8 @@ flutter test
 ```
 
 The runnable sample is available at [`example/lib/main.dart`](example/lib/main.dart).
-See [CONTRIBUTING.md](CONTRIBUTING.md) before submitting a change.
+See [CONTRIBUTING.md](CONTRIBUTING.md) before submitting a change. Security
+issues should follow the private process in [SECURITY.md](SECURITY.md).
 
 ## License
 

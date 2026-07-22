@@ -1,0 +1,19 @@
+.dart_tool/
+.github/
+.idea/
+.vscode/
+build/
+doc/api/
+
+# The repository doubles as a runnable example, but platform runners are not
+# part of the reusable library distributed through pub.dev.
+android/
+ios/
+linux/
+macos/
+web/
+windows/
+
+.metadata
+*.iml
+pubspec.lock
