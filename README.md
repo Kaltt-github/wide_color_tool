@@ -1,83 +1,116 @@
 # wide_color_tool
 
-A comprehensive color manipulation library for Flutter, providing extensive functionality for working with colors in various color spaces.
+[![CI](https://github.com/Kaltt-github/wide_color_tool/actions/workflows/ci.yml/badge.svg)](https://github.com/Kaltt-github/wide_color_tool/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+A focused Flutter library for creating, converting, mixing, and comparing colors
+across RGB, HSV, HSL, and CMYK color spaces. It also includes relative
+luminance and WCAG contrast utilities.
 
 ## Features
 
-- Support for multiple color spaces: RGB, HSV, HSL, and CMYK
-- Easy conversion between color spaces
-- Color mixing and blending
-- Contrast calculation and adjustment
-- Luminance calculation
-- Opacity and alpha channel manipulation
-- Flexible color creation methods
+- Immutable `WideColor` and mutable `ToolColor` APIs
+- RGB, HSV, HSL, and CMYK conversions
+- Color mixing in any supported color space
+- WCAG relative luminance and contrast-ratio calculations
+- Automatic light or dark contrast adjustment
+- RGB, ARGB, RRGGBB, and AARRGGBB hexadecimal parsing
+- Alpha and opacity manipulation
 
-## Getting Started
+## Requirements
 
-Add this package to your `pubspec.yaml`:
+- Dart 3.8 or later
+- Flutter 3.27 or later
 
-```yaml
-dependencies:
-  wide_color: ^1.0.1
+## Installation
+
+Add the package to your project:
+
+```sh
+flutter pub add wide_color_tool
 ```
 
-Then run:
-`flutter pub get`
+Then import it:
 
-**Usage**
-**Creating Colors**
+```dart
+import 'package:wide_color_tool/wide_color_tool.dart';
+```
+
+## Usage
+
+### Create and convert colors
+
 ```dart
 final red = WideColor.fromRGB(255, 0, 0);
+final green = WideColor.fromHSV(120, 1, 1);
+final blue = WideColor.fromHSL(240, 1, 0.5);
+final cyan = WideColor.fromCMYK(1, 0, 0, 0);
+final magenta = WideColor.fromString('#FF00FF');
 
-final green = WideColor.fromHSV(120, 1.0, 1.0);
-
-final blue = WideColor.fromHSL(240, 1.0, 0.5);
-
-final yellow = WideColor.fromCMYK(0.0, 1.0, 1.0, 0.0);
-
-final magenta = WideColor.fromString("#FF00FF");
+print(red.hsv);
+print(green.hsl);
+print(blue.cmyk);
+print(cyan.color);
+print(magenta.string); // #FFFF00FF (AARRGGBB)
 ```
 
-**Color Space Conversions**
-```dart
-final purple = WideColor.fromRGB(128, 0, 128);
+Six-digit hexadecimal values are treated as opaque RRGGBB colors. Eight-digit
+values use Flutter's AARRGGBB channel order.
 
-print(purple.hsv);  // HSVColor
-print(purple.hsl);  // HSLColor
-print(purple.cmyk);  // CMYKColor
-```
+### Transform and mix colors
 
-**Color Manipulation**
 ```dart
 final color = WideColor.fromRGB(100, 150, 200);
 
-// Adjust individual components
-final lighterColor = color.withValue(0.8);
-final moreSaturated = color.withSaturationV(0.9);
+final lighter = color.withLight(0.8);
+final saturated = color.withSaturationV(0.9);
 final redder = color.withRed(220);
-
-// Mix colors
-final mixedColor = color.mix(WideColor.fromRGB(200, 100, 50), otherInfluence: 0.3);
+final mixed = color.mix(
+  WideColor.fromRGB(200, 100, 50),
+  otherInfluence: 0.3,
+  source: ColorSource.rgb,
+);
 ```
 
-**Contrast and Accessibility**
+Every `WideColor` transformation returns a new immutable value. Use `ToolColor`
+when in-place updates are more convenient:
+
 ```dart
-final backgroundColor = WideColor.fromRGB(240, 240, 240);
-final textColor = WideColor.fromRGB(50, 50, 50);
+final editable = ToolColor.fromString('#336699');
+editable.red = 128;
+editable.opacity = 0.8;
+```
 
-// Calculate contrast ratio
-final contrastRatio = backgroundColor.contrast(textColor);
+### Measure and improve contrast
 
-// Ensure minimum contrast
-final adjustedTextColor = backgroundColor.fixContrast(
-  textColor,
+```dart
+final background = WideColor.fromRGB(240, 240, 240);
+final text = WideColor.fromRGB(150, 150, 150);
+
+final ratio = background.contrast(text);
+final accessibleText = background.fixContrast(
+  text,
   minContrast: 4.5,
   preference: ContrastPreference.dark,
 );
 ```
 
-**Advanced Usage**
-The library provides two main classes:
+The adjustment returns the closest reachable color in the requested direction.
+If the target ratio cannot be reached, it returns the corresponding black or
+white endpoint.
 
-- WideColor: An immutable color representation for efficient storage and calculations.
-- ToolColor: A mutable color class for interactive color manipulation.
+## Development
+
+```sh
+flutter pub get
+dart format --output=none --set-exit-if-changed .
+flutter analyze
+flutter test
+```
+
+The runnable sample is available at [`example/lib/main.dart`](example/lib/main.dart).
+See [CONTRIBUTING.md](CONTRIBUTING.md) before submitting a change.
+
+## License
+
+Released under the [MIT License](LICENSE).
