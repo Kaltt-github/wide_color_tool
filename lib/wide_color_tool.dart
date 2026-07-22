@@ -3,16 +3,12 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 /// The maximum value of an 8-bit color channel.
-const int maxColorChannel = 0xFF;
+const int maxBit = 0xFF;
 
-/// Use [maxColorChannel] instead.
-@Deprecated('Use maxColorChannel instead.')
-const int bit = maxColorChannel;
+int percentageToBit(double channel) =>
+    (channel * maxBit).round().clamp(0, maxBit);
 
-int _channelToInt(double channel) =>
-    (channel * maxColorChannel).round().clamp(0, maxColorChannel);
-
-double _clampUnit(num value) => value.clamp(0.0, 1.0).toDouble();
+double _clampPercentage(num value) => value.clamp(0.0, 1.0).toDouble();
 
 int _parseHexColor(String input) {
   var value = input.trim();
@@ -75,34 +71,26 @@ class CMYKColor {
 
     final scale = 1 - black;
     return CMYKColor.fromCMYK(
-      _clampUnit((1 - color.r - black) / scale),
-      _clampUnit((1 - color.g - black) / scale),
-      _clampUnit((1 - color.b - black) / scale),
+      _clampPercentage((1 - color.r - black) / scale),
+      _clampPercentage((1 - color.g - black) / scale),
+      _clampPercentage((1 - color.b - black) / scale),
       black,
       color.a,
     );
   }
 
   Color toColor() => Color.fromARGB(
-    _channelToInt(opacity),
-    _channelToInt((1 - cyan) * (1 - black)),
-    _channelToInt((1 - magenta) * (1 - black)),
-    _channelToInt((1 - yellow) * (1 - black)),
+    percentageToBit(opacity),
+    percentageToBit((1 - cyan) * (1 - black)),
+    percentageToBit((1 - magenta) * (1 - black)),
+    percentageToBit((1 - yellow) * (1 - black)),
   );
 
   CMYKColor withCyan(double cyan) =>
       CMYKColor.fromCMYK(cyan, magenta, yellow, black, opacity);
 
-  /// Use [withCyan] instead.
-  @Deprecated('Use withCyan instead.')
-  CMYKColor withcyan(double cyan) => withCyan(cyan);
-
   CMYKColor withMagenta(double magenta) =>
       CMYKColor.fromCMYK(cyan, magenta, yellow, black, opacity);
-
-  /// Use [withMagenta] instead.
-  @Deprecated('Use withMagenta instead.')
-  CMYKColor withMagetna(double magenta) => withMagenta(magenta);
 
   CMYKColor withYellow(double yellow) =>
       CMYKColor.fromCMYK(cyan, magenta, yellow, black, opacity);
@@ -155,7 +143,7 @@ class WideColor {
   /// Web Content Accessibility Guidelines (WCAG) 2.0
   /// https://www.w3.org/TR/WCAG20/#relativeluminancedef
   static double _normalizeLuminance(int rgb) {
-    final normalized = rgb / maxColorChannel;
+    final normalized = rgb / maxBit;
     return normalized <= 0.03928
         ? normalized / 12.92
         : pow((normalized + 0.055) / 1.055, 2.4).toDouble();
@@ -186,9 +174,9 @@ class WideColor {
     }
 
     final endpoint = WideColor.fromRGB(
-      lighten ? maxColorChannel : 0,
-      lighten ? maxColorChannel : 0,
-      lighten ? maxColorChannel : 0,
+      lighten ? maxBit : 0,
+      lighten ? maxBit : 0,
+      lighten ? maxBit : 0,
       alpha: toContrast.alpha,
     );
     if (base.contrast(endpoint) < minContrast) {
@@ -227,14 +215,6 @@ class WideColor {
     lighten: true,
   );
 
-  /// Use [ensureLightContrast] instead.
-  @Deprecated('Use ensureLightContrast instead.')
-  static WideColor asureLightContrast(
-    WideColor base,
-    WideColor toContrast, {
-    num minContrast = 4.5,
-  }) => ensureLightContrast(base, toContrast, minContrast: minContrast);
-
   /// Darkens [toContrast] until it reaches [minContrast] against [base].
   static WideColor ensureDarkContrast(
     WideColor base,
@@ -246,14 +226,6 @@ class WideColor {
     minContrast: minContrast,
     lighten: false,
   );
-
-  /// Use [ensureDarkContrast] instead.
-  @Deprecated('Use ensureDarkContrast instead.')
-  static WideColor asureDarkContrast(
-    WideColor base,
-    WideColor toContrast, {
-    num minContrast = 4.5,
-  }) => ensureDarkContrast(base, toContrast, minContrast: minContrast);
 
   /// Adjust the [toContrast] color to ensure a minimum contrast ratio against [base].
   /// This method will adjust the color based on the [preference] for light or dark contrast.
@@ -299,20 +271,6 @@ class WideColor {
     }
   }
 
-  /// Use [ensureContrast] instead.
-  @Deprecated('Use ensureContrast instead.')
-  static WideColor asureContrast(
-    WideColor base,
-    WideColor toContrast, {
-    num minContrast = 4.5,
-    ContrastPreference preference = defaultContrastPreference,
-  }) => ensureContrast(
-    base,
-    toContrast,
-    minContrast: minContrast,
-    preference: preference,
-  );
-
   /// Calculate the contrast ratio between two [WideColor] instances [a] and [b].
   /// This follows the WCAG 2.0 guidelines for contrast ratios:
   /// - 3:1 for large text (at least 18pt or 14pt bold)
@@ -335,7 +293,7 @@ class WideColor {
 
   /// `[0.0..1.0]`
   /// Opacity from ARGB
-  double get opacity => alpha / maxColorChannel;
+  double get opacity => alpha / maxBit;
 
   /// `[0..255]`
   /// Red from RGB
@@ -373,19 +331,19 @@ class WideColor {
   /// Cyan from CMYK
   double get cyan => black >= 1
       ? 0
-      : _clampUnit((1 - red / maxColorChannel - black) / (1 - black));
+      : _clampPercentage((1 - red / maxBit - black) / (1 - black));
 
   /// `[0.0..1.0]`
   /// Magenta from CMYK
   double get magenta => black >= 1
       ? 0
-      : _clampUnit((1 - green / maxColorChannel - black) / (1 - black));
+      : _clampPercentage((1 - green / maxBit - black) / (1 - black));
 
   /// `[0.0..1.0]`
   /// Yellow from CMYK
   double get yellow => black >= 1
       ? 0
-      : _clampUnit((1 - blue / maxColorChannel - black) / (1 - black));
+      : _clampPercentage((1 - blue / maxBit - black) / (1 - black));
 
   /// `[0.0..1.0]`
   /// Black from CMYK
@@ -410,7 +368,7 @@ class WideColor {
       '#${bitValue.toRadixString(16).padLeft(8, '0').toUpperCase()}';
 
   @override
-  String toString() => string;
+  String toString([String prefix = '#']) => '$prefix$string';
 
   const WideColor._({
     required this.bitValue,
@@ -452,7 +410,7 @@ class WideColor {
     : this.fromColor(
         opacity != null
             ? Color.fromRGBO(r, g, b, opacity)
-            : Color.fromARGB(alpha ?? maxColorChannel, r, g, b),
+            : Color.fromARGB(alpha ?? maxBit, r, g, b),
       );
 
   WideColor.fromHSVColor(HSVColor color)
@@ -461,7 +419,7 @@ class WideColor {
   WideColor.fromHSV(int h, double s, double v, {int? alpha, double? opacity})
     : this.fromHSVColor(
         HSVColor.fromAHSV(
-          alpha != null ? alpha / maxColorChannel : opacity ?? 1.0,
+          alpha != null ? alpha / maxBit : opacity ?? 1.0,
           h.toDouble(),
           s,
           v,
@@ -474,7 +432,7 @@ class WideColor {
   WideColor.fromHSL(int h, double s, double l, {int? alpha, double? opacity})
     : this.fromHSLColor(
         HSLColor.fromAHSL(
-          alpha != null ? alpha / maxColorChannel : opacity ?? 1.0,
+          alpha != null ? alpha / maxBit : opacity ?? 1.0,
           h.toDouble(),
           s,
           l,
@@ -494,7 +452,7 @@ class WideColor {
            m,
            y,
            k,
-           alpha != null ? alpha / maxColorChannel : opacity ?? 1,
+           alpha != null ? alpha / maxBit : opacity ?? 1,
          ),
        );
 
@@ -505,7 +463,7 @@ class WideColor {
   WideColor withAlpha(int alpha) => WideColor.fromColor(color.withAlpha(alpha));
 
   WideColor withOpacity(double opacity) =>
-      withAlpha((maxColorChannel * opacity).round());
+      withAlpha((maxBit * opacity).round());
 
   WideColor withRGB({
     int? red,
@@ -517,9 +475,7 @@ class WideColor {
     red ?? this.red,
     green ?? this.green,
     blue ?? this.blue,
-    alpha: opacity != null
-        ? (opacity * maxColorChannel).round()
-        : alpha ?? this.alpha,
+    alpha: opacity != null ? (opacity * maxBit).round() : alpha ?? this.alpha,
   );
 
   WideColor withRed(int red) => withRGB(red: red);
@@ -536,9 +492,7 @@ class WideColor {
     hue ?? this.hue,
     saturation ?? saturationV,
     value ?? this.value,
-    alpha: opacity != null
-        ? (opacity * maxColorChannel).round()
-        : alpha ?? this.alpha,
+    alpha: opacity != null ? (opacity * maxBit).round() : alpha ?? this.alpha,
   );
 
   WideColor withHue(int hue) => withHSV(hue: hue);
@@ -556,9 +510,7 @@ class WideColor {
     hue ?? this.hue,
     saturation ?? saturationL,
     light ?? this.light,
-    alpha: opacity != null
-        ? (opacity * maxColorChannel).round()
-        : alpha ?? this.alpha,
+    alpha: opacity != null ? (opacity * maxBit).round() : alpha ?? this.alpha,
   );
 
   WideColor withSaturationL(double saturation) =>
@@ -577,14 +529,10 @@ class WideColor {
     magenta ?? this.magenta,
     yellow ?? this.yellow,
     black ?? this.black,
-    alpha: opacity != null
-        ? (opacity * maxColorChannel).round()
-        : alpha ?? this.alpha,
+    alpha: opacity != null ? (opacity * maxBit).round() : alpha ?? this.alpha,
   );
 
   WideColor withCyan(double cyan) => withCMYK(cyan: cyan);
-  @Deprecated('Use withCyan instead.')
-  WideColor withcyan(double cyan) => withCyan(cyan);
   WideColor withMagenta(double magenta) => withCMYK(magenta: magenta);
   WideColor withYellow(double yellow) => withCMYK(yellow: yellow);
   WideColor withBlack(double black) => withCMYK(black: black);
@@ -711,26 +659,12 @@ class ToolColor implements WideColor {
   }) =>
       WideColor.ensureLightContrast(base, toContrast, minContrast: minContrast);
 
-  @Deprecated('Use ensureLightContrast instead.')
-  static WideColor asureLightContrast(
-    WideColor base,
-    WideColor toContrast, {
-    num minContrast = 4.5,
-  }) => ensureLightContrast(base, toContrast, minContrast: minContrast);
-
   static WideColor ensureDarkContrast(
     WideColor base,
     WideColor toContrast, {
     num minContrast = 4.5,
   }) =>
       WideColor.ensureDarkContrast(base, toContrast, minContrast: minContrast);
-
-  @Deprecated('Use ensureDarkContrast instead.')
-  static WideColor asureDarkContrast(
-    WideColor base,
-    WideColor toContrast, {
-    num minContrast = 4.5,
-  }) => ensureDarkContrast(base, toContrast, minContrast: minContrast);
 
   /// Adjust the [toContrast] color to ensure a minimum contrast ratio against [base].
   /// This method will adjust the color based on the [preference] for light or dark contrast.
@@ -742,19 +676,6 @@ class ToolColor implements WideColor {
     num minContrast = 4.5,
     ContrastPreference preference = defaultContrastPreference,
   }) => WideColor.ensureContrast(
-    base,
-    toContrast,
-    minContrast: minContrast,
-    preference: preference,
-  );
-
-  @Deprecated('Use ensureContrast instead.')
-  static WideColor asureContrast(
-    WideColor base,
-    WideColor toContrast, {
-    num minContrast = 4.5,
-    ContrastPreference preference = defaultContrastPreference,
-  }) => ensureContrast(
     base,
     toContrast,
     minContrast: minContrast,
@@ -781,23 +702,23 @@ class ToolColor implements WideColor {
   set bitValue(int value) => color = Color(value);
 
   @override
-  int get alpha => _channelToInt(color.a);
+  int get alpha => percentageToBit(color.a);
   set alpha(int value) => color = color.withAlpha(value);
 
   @override
   double get opacity => color.a;
-  set opacity(double value) => alpha = _channelToInt(value);
+  set opacity(double value) => alpha = percentageToBit(value);
 
   @override
-  int get red => _channelToInt(color.r);
+  int get red => percentageToBit(color.r);
   set red(int value) => color = color.withRed(value);
 
   @override
-  int get green => _channelToInt(color.g);
+  int get green => percentageToBit(color.g);
   set green(int value) => color = color.withGreen(value);
 
   @override
-  int get blue => _channelToInt(color.b);
+  int get blue => percentageToBit(color.b);
   set blue(int value) => color = color.withBlue(value);
 
   @override
@@ -878,7 +799,7 @@ class ToolColor implements WideColor {
   set string(String value) => bitValue = _parseHexColor(value);
 
   @override
-  String toString() => string;
+  String toString([String prefix = '#']) => '$prefix$string';
 
   ToolColor.fromColor(Color color) : _color = color;
 
@@ -888,14 +809,14 @@ class ToolColor implements WideColor {
     : this.fromColor(
         opacity != null
             ? Color.fromRGBO(r, g, b, opacity)
-            : Color.fromARGB(alpha ?? maxColorChannel, r, g, b),
+            : Color.fromARGB(alpha ?? maxBit, r, g, b),
       );
   ToolColor.fromHSVColor(HSVColor color) : _hsv = color;
 
   ToolColor.fromHSV(int h, double s, double v, {int? alpha, double? opacity})
     : this.fromHSVColor(
         HSVColor.fromAHSV(
-          alpha != null ? alpha / maxColorChannel : opacity ?? 1.0,
+          alpha != null ? alpha / maxBit : opacity ?? 1.0,
           h.toDouble(),
           s,
           v,
@@ -907,7 +828,7 @@ class ToolColor implements WideColor {
   ToolColor.fromHSL(int h, double s, double l, {int? alpha, double? opacity})
     : this.fromHSLColor(
         HSLColor.fromAHSL(
-          alpha != null ? alpha / maxColorChannel : opacity ?? 1.0,
+          alpha != null ? alpha / maxBit : opacity ?? 1.0,
           h.toDouble(),
           s,
           l,
@@ -927,7 +848,7 @@ class ToolColor implements WideColor {
            m,
            y,
            k,
-           alpha != null ? alpha / maxColorChannel : opacity ?? 1,
+           alpha != null ? alpha / maxBit : opacity ?? 1,
          ),
        );
 
@@ -940,7 +861,7 @@ class ToolColor implements WideColor {
 
   @override
   ToolColor withOpacity(double opacity) =>
-      withAlpha((maxColorChannel * opacity).round());
+      withAlpha((maxBit * opacity).round());
 
   @override
   ToolColor withRGB({
@@ -953,9 +874,7 @@ class ToolColor implements WideColor {
     red ?? this.red,
     green ?? this.green,
     blue ?? this.blue,
-    alpha: opacity != null
-        ? (opacity * maxColorChannel).round()
-        : alpha ?? this.alpha,
+    alpha: opacity != null ? (opacity * maxBit).round() : alpha ?? this.alpha,
   );
 
   @override
@@ -976,9 +895,7 @@ class ToolColor implements WideColor {
     hue ?? this.hue,
     saturation ?? saturationV,
     value ?? this.value,
-    alpha: opacity != null
-        ? (opacity * maxColorChannel).round()
-        : alpha ?? this.alpha,
+    alpha: opacity != null ? (opacity * maxBit).round() : alpha ?? this.alpha,
   );
 
   @override
@@ -1000,9 +917,7 @@ class ToolColor implements WideColor {
     hue ?? this.hue,
     saturation ?? saturationL,
     light ?? this.light,
-    alpha: opacity != null
-        ? (opacity * maxColorChannel).round()
-        : alpha ?? this.alpha,
+    alpha: opacity != null ? (opacity * maxBit).round() : alpha ?? this.alpha,
   );
 
   @override
@@ -1024,16 +939,11 @@ class ToolColor implements WideColor {
     magenta ?? this.magenta,
     yellow ?? this.yellow,
     black ?? this.black,
-    alpha: opacity != null
-        ? (opacity * maxColorChannel).round()
-        : alpha ?? this.alpha,
+    alpha: opacity != null ? (opacity * maxBit).round() : alpha ?? this.alpha,
   );
 
   @override
   ToolColor withCyan(double cyan) => withCMYK(cyan: cyan);
-  @override
-  @Deprecated('Use withCyan instead.')
-  ToolColor withcyan(double cyan) => withCyan(cyan);
   @override
   ToolColor withMagenta(double magenta) => withCMYK(magenta: magenta);
   @override
