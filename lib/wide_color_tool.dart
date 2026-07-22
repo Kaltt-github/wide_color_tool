@@ -1,3 +1,6 @@
+/// Color conversion, mixing, luminance, and WCAG contrast utilities.
+library;
+
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -5,8 +8,11 @@ import 'package:flutter/material.dart';
 /// The maximum value of an 8-bit color channel.
 const int maxBit = 0xFF;
 
-int percentageToBit(double channel) =>
-    (channel * maxBit).round().clamp(0, maxBit);
+/// Converts a normalized [percentage] to an 8-bit channel value.
+///
+/// Values outside the `0.0` to `1.0` range are clamped.
+int percentageToBit(double percentage) =>
+    (percentage * maxBit).round().clamp(0, maxBit);
 
 double _clampPercentage(num value) => value.clamp(0.0, 1.0).toDouble();
 
@@ -51,6 +57,7 @@ class CMYKColor {
   /// `[0.0..1.0]`
   final double opacity;
 
+  /// Creates a CMYK color from normalized channels and [opacity].
   const CMYKColor.fromCMYK(
     this.cyan,
     this.magenta,
@@ -63,6 +70,7 @@ class CMYKColor {
       assert(0 <= black, black <= 1),
       assert(0 <= opacity, opacity <= 1);
 
+  /// Converts a Flutter [Color] to CMYK.
   factory CMYKColor.fromColor(Color color) {
     final black = 1.0 - max(color.r, max(color.g, color.b));
     if (black >= 1) {
@@ -79,6 +87,7 @@ class CMYKColor {
     );
   }
 
+  /// Converts this CMYK value to a Flutter [Color].
   Color toColor() => Color.fromARGB(
     percentageToBit(opacity),
     percentageToBit((1 - cyan) * (1 - black)),
@@ -86,15 +95,19 @@ class CMYKColor {
     percentageToBit((1 - yellow) * (1 - black)),
   );
 
+  /// Returns a copy with the specified [cyan] channel.
   CMYKColor withCyan(double cyan) =>
       CMYKColor.fromCMYK(cyan, magenta, yellow, black, opacity);
 
+  /// Returns a copy with the specified [magenta] channel.
   CMYKColor withMagenta(double magenta) =>
       CMYKColor.fromCMYK(cyan, magenta, yellow, black, opacity);
 
+  /// Returns a copy with the specified [yellow] channel.
   CMYKColor withYellow(double yellow) =>
       CMYKColor.fromCMYK(cyan, magenta, yellow, black, opacity);
 
+  /// Returns a copy with the specified [black] channel.
   CMYKColor withBlack(double black) =>
       CMYKColor.fromCMYK(cyan, magenta, yellow, black, opacity);
 
@@ -126,12 +139,37 @@ class CMYKColor {
   int get hashCode => Object.hash(cyan, magenta, yellow, black, opacity);
 }
 
-enum ColorSource { rgb, hsv, hsl, cmyk }
+/// Color spaces supported by the mixing operations.
+enum ColorSource {
+  /// Red, green, and blue channels.
+  rgb,
 
+  /// Hue, saturation, and value channels.
+  hsv,
+
+  /// Hue, saturation, and lightness channels.
+  hsl,
+
+  /// Cyan, magenta, yellow, and black channels.
+  cmyk,
+}
+
+/// The color space used by mixing operations when none is specified.
 const defaultColorSource = ColorSource.hsv;
 
-enum ContrastPreference { light, dark, free }
+/// Direction used when adjusting a color to meet a contrast target.
+enum ContrastPreference {
+  /// Prefer a lighter result.
+  light,
 
+  /// Prefer a darker result.
+  dark,
+
+  /// Choose the closest result that meets the requested contrast.
+  free,
+}
+
+/// The contrast adjustment strategy used when none is specified.
 const defaultContrastPreference = ContrastPreference.free;
 
 /// An immutable color with RGB, HSV, HSL, CMYK, alpha, and contrast utilities.
@@ -353,22 +391,27 @@ class WideColor {
   /// Key from CMYK aka Black
   double get key => black;
 
+  /// This value as a Flutter [Color].
   Color get color => Color(bitValue);
 
+  /// This value in the HSV color space.
   HSVColor get hsv =>
       HSVColor.fromAHSV(opacity, hue.toDouble(), saturationV, value);
 
+  /// This value in the HSL color space.
   HSLColor get hsl =>
       HSLColor.fromAHSL(opacity, hue.toDouble(), saturationL, light);
 
+  /// This value in the CMYK color space.
   CMYKColor get cmyk =>
       CMYKColor.fromCMYK(cyan, magenta, yellow, black, opacity);
 
+  /// An uppercase `#AARRGGBB` representation of this color.
   String get string =>
       '#${bitValue.toRadixString(16).padLeft(8, '0').toUpperCase()}';
 
   @override
-  String toString([String prefix = '#']) => '$prefix$string';
+  String toString([String prefix = '#']) => '$prefix${string.substring(1)}';
 
   const WideColor._({
     required this.bitValue,
@@ -397,6 +440,7 @@ class WideColor {
   WideColor._completeL(Color color, HSLColor hsl)
     : this._complete(color, HSVColor.fromColor(color), hsl);
 
+  /// Creates a color from a Flutter [Color].
   WideColor.fromColor(Color color)
     : this._complete(
         color,
@@ -404,8 +448,10 @@ class WideColor {
         HSLColor.fromColor(color),
       );
 
+  /// Creates a color from a 32-bit ARGB [bitValue].
   WideColor.fromBitValue(int bitValue) : this.fromColor(Color(bitValue));
 
+  /// Creates a color from 8-bit RGB channels and optional transparency.
   WideColor.fromRGB(int r, int g, int b, {int? alpha, double? opacity})
     : this.fromColor(
         opacity != null
@@ -413,9 +459,11 @@ class WideColor {
             : Color.fromARGB(alpha ?? maxBit, r, g, b),
       );
 
+  /// Creates a color from a Flutter [HSVColor].
   WideColor.fromHSVColor(HSVColor color)
     : this._completeV(color.toColor(), color);
 
+  /// Creates a color from HSV channels and optional transparency.
   WideColor.fromHSV(int h, double s, double v, {int? alpha, double? opacity})
     : this.fromHSVColor(
         HSVColor.fromAHSV(
@@ -426,9 +474,11 @@ class WideColor {
         ),
       );
 
+  /// Creates a color from a Flutter [HSLColor].
   WideColor.fromHSLColor(HSLColor color)
     : this._completeL(color.toColor(), color);
 
+  /// Creates a color from HSL channels and optional transparency.
   WideColor.fromHSL(int h, double s, double l, {int? alpha, double? opacity})
     : this.fromHSLColor(
         HSLColor.fromAHSL(
@@ -439,6 +489,7 @@ class WideColor {
         ),
       );
 
+  /// Creates a color from normalized CMYK channels and optional transparency.
   WideColor.fromCMYK(
     double c,
     double m,
@@ -456,15 +507,20 @@ class WideColor {
          ),
        );
 
+  /// Creates a color from a [CMYKColor].
   WideColor.fromCMYKColor(CMYKColor color) : this.fromColor(color.toColor());
 
+  /// Parses RGB or ARGB hexadecimal [value].
   WideColor.fromString(String value) : this.fromBitValue(_parseHexColor(value));
 
+  /// Returns a copy with the specified 8-bit [alpha] channel.
   WideColor withAlpha(int alpha) => WideColor.fromColor(color.withAlpha(alpha));
 
+  /// Returns a copy with the specified normalized [opacity].
   WideColor withOpacity(double opacity) =>
       withAlpha((maxBit * opacity).round());
 
+  /// Returns a copy with any supplied RGB or transparency channels replaced.
   WideColor withRGB({
     int? red,
     int? green,
@@ -478,10 +534,16 @@ class WideColor {
     alpha: opacity != null ? (opacity * maxBit).round() : alpha ?? this.alpha,
   );
 
+  /// Returns a copy with the specified 8-bit [red] channel.
   WideColor withRed(int red) => withRGB(red: red);
+
+  /// Returns a copy with the specified 8-bit [green] channel.
   WideColor withGreen(int green) => withRGB(green: green);
+
+  /// Returns a copy with the specified 8-bit [blue] channel.
   WideColor withBlue(int blue) => withRGB(blue: blue);
 
+  /// Returns a copy with any supplied HSV or transparency channels replaced.
   WideColor withHSV({
     int? hue,
     double? saturation,
@@ -495,11 +557,17 @@ class WideColor {
     alpha: opacity != null ? (opacity * maxBit).round() : alpha ?? this.alpha,
   );
 
+  /// Returns a copy with the specified [hue].
   WideColor withHue(int hue) => withHSV(hue: hue);
+
+  /// Returns a copy with the specified HSV [saturation].
   WideColor withSaturationV(double saturation) =>
       withHSV(saturation: saturation);
+
+  /// Returns a copy with the specified HSV [value].
   WideColor withValue(double value) => withHSV(value: value);
 
+  /// Returns a copy with any supplied HSL or transparency channels replaced.
   WideColor withHSL({
     int? hue,
     double? saturation,
@@ -513,10 +581,14 @@ class WideColor {
     alpha: opacity != null ? (opacity * maxBit).round() : alpha ?? this.alpha,
   );
 
+  /// Returns a copy with the specified HSL [saturation].
   WideColor withSaturationL(double saturation) =>
       withHSL(saturation: saturation);
+
+  /// Returns a copy with the specified HSL [light] value.
   WideColor withLight(double light) => withHSL(light: light);
 
+  /// Returns a copy with any supplied CMYK or transparency channels replaced.
   WideColor withCMYK({
     double? cyan,
     double? magenta,
@@ -532,11 +604,19 @@ class WideColor {
     alpha: opacity != null ? (opacity * maxBit).round() : alpha ?? this.alpha,
   );
 
+  /// Returns a copy with the specified [cyan] channel.
   WideColor withCyan(double cyan) => withCMYK(cyan: cyan);
+
+  /// Returns a copy with the specified [magenta] channel.
   WideColor withMagenta(double magenta) => withCMYK(magenta: magenta);
+
+  /// Returns a copy with the specified [yellow] channel.
   WideColor withYellow(double yellow) => withCMYK(yellow: yellow);
+
+  /// Returns a copy with the specified [black] channel.
   WideColor withBlack(double black) => withCMYK(black: black);
 
+  /// Returns an independent immutable copy of this color.
   WideColor copy() => WideColor._(
     bitValue: bitValue,
     hue: hue,
@@ -547,9 +627,13 @@ class WideColor {
     black: black,
   );
 
+  /// Returns a mutable copy of this color.
   ToolColor toTool() => ToolColor.fromColor(color);
+
+  /// Returns an independent immutable copy of this color.
   WideColor toWide() => copy();
 
+  /// Mixes [a] and [b] in the requested color [source].
   factory WideColor.mix(
     WideColor a,
     WideColor b, {
@@ -652,6 +736,7 @@ class WideColor {
 ///
 /// Use [WideColor] when an immutable color is preferred.
 class ToolColor implements WideColor {
+  /// Lightens [toContrast] until it reaches [minContrast] against [base].
   static WideColor ensureLightContrast(
     WideColor base,
     WideColor toContrast, {
@@ -659,6 +744,7 @@ class ToolColor implements WideColor {
   }) =>
       WideColor.ensureLightContrast(base, toContrast, minContrast: minContrast);
 
+  /// Darkens [toContrast] until it reaches [minContrast] against [base].
   static WideColor ensureDarkContrast(
     WideColor base,
     WideColor toContrast, {
@@ -682,6 +768,7 @@ class ToolColor implements WideColor {
     preference: preference,
   );
 
+  /// Calculates the WCAG relative luminance of [color].
   static double getLuminance(WideColor color) => WideColor.getLuminance(color);
 
   /// Calculate the contrast ratio between two [WideColor] instances [a] and [b].
@@ -799,20 +886,26 @@ class ToolColor implements WideColor {
   set string(String value) => bitValue = _parseHexColor(value);
 
   @override
-  String toString([String prefix = '#']) => '$prefix$string';
+  String toString([String prefix = '#']) => '$prefix${string.substring(1)}';
 
+  /// Creates a mutable color from a Flutter [Color].
   ToolColor.fromColor(Color color) : _color = color;
 
+  /// Creates a mutable color from a 32-bit ARGB [bitValue].
   ToolColor.fromBitValue(int bitValue) : this.fromColor(Color(bitValue));
 
+  /// Creates a mutable color from 8-bit RGB channels and transparency.
   ToolColor.fromRGB(int r, int g, int b, {int? alpha, double? opacity})
     : this.fromColor(
         opacity != null
             ? Color.fromRGBO(r, g, b, opacity)
             : Color.fromARGB(alpha ?? maxBit, r, g, b),
       );
+
+  /// Creates a mutable color from a Flutter [HSVColor].
   ToolColor.fromHSVColor(HSVColor color) : _hsv = color;
 
+  /// Creates a mutable color from HSV channels and optional transparency.
   ToolColor.fromHSV(int h, double s, double v, {int? alpha, double? opacity})
     : this.fromHSVColor(
         HSVColor.fromAHSV(
@@ -823,8 +916,10 @@ class ToolColor implements WideColor {
         ),
       );
 
+  /// Creates a mutable color from a Flutter [HSLColor].
   ToolColor.fromHSLColor(HSLColor color) : _hsl = color;
 
+  /// Creates a mutable color from HSL channels and optional transparency.
   ToolColor.fromHSL(int h, double s, double l, {int? alpha, double? opacity})
     : this.fromHSLColor(
         HSLColor.fromAHSL(
@@ -835,6 +930,7 @@ class ToolColor implements WideColor {
         ),
       );
 
+  /// Creates a mutable color from normalized CMYK channels and transparency.
   ToolColor.fromCMYK(
     double c,
     double m,
@@ -852,8 +948,10 @@ class ToolColor implements WideColor {
          ),
        );
 
+  /// Creates a mutable color from a [CMYKColor].
   ToolColor.fromCMYKColor(CMYKColor color) : _cmyk = color;
 
+  /// Parses a mutable color from RGB or ARGB hexadecimal [value].
   ToolColor.fromString(String value) : this.fromBitValue(_parseHexColor(value));
 
   @override
@@ -958,6 +1056,7 @@ class ToolColor implements WideColor {
   @override
   ToolColor toTool() => copy();
 
+  /// Mixes [a] and [b] in the requested color [source].
   factory ToolColor.mix(
     WideColor a,
     WideColor b, {
