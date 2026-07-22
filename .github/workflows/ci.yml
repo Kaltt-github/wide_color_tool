@@ -12,7 +12,7 @@ permissions:
 jobs:
   quality:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     steps:
       - name: Check out repository
@@ -27,11 +27,30 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Install example dependencies
+        working-directory: example
+        run: flutter pub get
+
       - name: Verify formatting
         run: dart format --output=none --set-exit-if-changed .
 
       - name: Analyze source
         run: flutter analyze --fatal-infos
 
-      - name: Run tests
+      - name: Run tests with coverage
+        run: flutter test --coverage
+
+      - name: Enforce coverage threshold
+        run: dart run tool/check_coverage.dart 80
+
+      - name: Analyze example application
+        working-directory: example
+        run: flutter analyze --fatal-infos
+
+      - name: Test example application
+        working-directory: example
         run: flutter test
+
+      - name: Build example application
+        working-directory: example
+        run: flutter build web

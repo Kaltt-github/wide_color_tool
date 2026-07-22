@@ -22,6 +22,23 @@ luminance and WCAG contrast utilities.
 - Dart 3.8 or later
 - Flutter 3.27 or later
 
+## Migrating from 1.x
+
+Version 2.0 removes misspelled legacy APIs instead of carrying them into the
+new major release:
+
+| Removed API | Replacement |
+| --- | --- |
+| `bit` | `maxBit` |
+| `withcyan` | `withCyan` |
+| `withMagetna` | `withMagenta` |
+| `asureContrast` | `ensureContrast` |
+| `asureLightContrast` | `ensureLightContrast` |
+| `asureDarkContrast` | `ensureDarkContrast` |
+
+Hexadecimal strings are now rendered as uppercase AARRGGBB. `toString()` uses
+`#` by default and accepts a custom prefix, such as `color.toString('0x')`.
+
 ## Installation
 
 Add the package to your project:
@@ -104,13 +121,24 @@ white endpoint.
 ```sh
 flutter pub get
 dart format --output=none --set-exit-if-changed .
-flutter analyze
-flutter test
+flutter analyze --fatal-infos
+flutter test --coverage
+dart run tool/check_coverage.dart 80
 ```
 
-The runnable sample is available at [`example/lib/main.dart`](example/lib/main.dart).
+Run the independent example application separately:
+
+```sh
+cd example
+flutter pub get
+flutter run
+```
+
 See [CONTRIBUTING.md](CONTRIBUTING.md) before submitting a change. Security
 issues should follow the private process in [SECURITY.md](SECURITY.md).
+The generated API reference is published on
+[pub.dev](https://pub.dev/documentation/wide_color_tool/latest/). The release
+checklist and publication commands are documented in [RELEASING.md](RELEASING.md).
 
 ## License
 
