@@ -14,6 +14,11 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `ensureDarkContrast`, and `withCyan` APIs.
 - Added value equality to `WideColor` and `CMYKColor`.
 - Added support for three-, four-, six-, and eight-digit hexadecimal colors.
+- Added `maxBit` and `percentageToBit` for explicit 8-bit channel conversion.
+- Added an optional hexadecimal prefix to `WideColor.toString` and
+  `ToolColor.toString`.
+- Added complete public API documentation and GitHub issue/PR templates.
+- Added an enforced 80% line-coverage threshold to CI.
 
 ### Changed
 
@@ -21,6 +26,7 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Changed hexadecimal output to padded uppercase AARRGGBB format.
 - Changed `WideColor.withAlpha` to return an immutable `WideColor`.
 - Improved package metadata, documentation, and examples.
+- Moved platform runners into a standalone application under `example/`.
 - Replaced deprecated Flutter color component accessors.
 
 ### Fixed
@@ -31,11 +37,19 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Fixed light contrast adjustment delegating to the dark adjustment path.
 - Fixed contrast ratios when ARGB ordering differed from luminance ordering.
 - Fixed six-digit hexadecimal input producing fully transparent colors.
+- Fixed `toString()` duplicating the default `#` hexadecimal prefix.
 
-### Deprecated
+### Removed
 
-- Deprecated misspelled compatibility aliases beginning with `asure`.
-- Deprecated `withcyan`, `withMagetna`, and `bit` compatibility aliases.
+- Removed the misspelled `asureContrast`, `asureLightContrast`, and
+  `asureDarkContrast` methods. Use their corresponding `ensure` methods.
+- Removed `withcyan`; use `withCyan`.
+- Removed `withMagetna`; use `withMagenta`.
+- Removed `bit`; use `maxBit`.
+
+These removals are intentionally part of the `2.0.0` major-version migration.
+They were not removed from a stable `2.x` release because `2.0.0` had not yet
+been published.
 
 ## [1.0.3+2] - 2024-08-19
 
